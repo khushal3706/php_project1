@@ -56,9 +56,16 @@ function abbr($name) {
     return strtoupper(substr($s, 0, 2));
 }
 
-$avatar_colors = ['#6366f1', '#22d3ee', '#a855f7', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444'];
+$avatar_colors = ['#1f6f43', '#7c5cd6', '#0e7490', '#15803d', '#4f46e5', '#b45309', '#c2410c', '#0369a1'];
 ?>
 <?php include 'header.php'; ?>
+
+<style>
+.star-label{font-size:28px;cursor:pointer;color:#d8e0d8;transition:color .2s,transform .2s;user-select:none}
+.star-label.on{color:var(--star)}
+.star-label:hover{color:var(--star);transform:scale(1.1)}
+.star-input{display:none}
+</style>
 
 <main class="w" style="padding-top:32px;padding-bottom:64px;">
 
@@ -86,7 +93,7 @@ $avatar_colors = ['#6366f1', '#22d3ee', '#a855f7', '#ec4899', '#10b981', '#f59e0
           ?></span><span class="st-em"><?php
             echo str_repeat('&#9733;', 5 - $full);
           ?></span>
-          <span style="color:#fbbf24;font-weight:600;font-size:14px;"><?= number_format($avg_rating, 1) ?></span>
+          <span style="color:var(--star);font-weight:700;font-size:14px;"><?= number_format($avg_rating, 1) ?></span>
           <span class="t-s" style="font-size:13px;">(<?= $review_count ?> review<?= $review_count !== 1 ? 's' : '' ?>)</span>
         </div>
         <p class="t-s" style="font-size:14px;line-height:1.7;margin-bottom:24px;">
@@ -96,14 +103,16 @@ $avatar_colors = ['#6366f1', '#22d3ee', '#a855f7', '#ec4899', '#10b981', '#f59e0
           <?php if (!empty($tool['url'])): ?>
           <a href="<?= htmlspecialchars($tool['url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Visit Tool</a>
           <?php endif; ?>
-          <a href="recommend.php?category_id=<?= $tool['category_id'] ?>" class="btn btn-secondary">Similar Tools</a>
+          <?php if (!empty($tool['category_id'])): ?>
+          <a href="recommend.php?category_id=<?= (int)$tool['category_id'] ?>" class="btn btn-secondary">Similar Tools</a>
+          <?php endif; ?>
         </div>
       </div>
     </div>
   </div>
 
   <div style="margin-top:40px;margin-bottom:20px;">
-    <h2 class="f g3" style="font-size:18px;font-weight:700;">Community Reviews<?php if ($review_count > 0): ?><span class="t-s" style="font-size:14px;font-weight:400;">(<?= $review_count ?>)</span><?php endif; ?></h2>
+    <h2 class="f g3" style="font-size:18px;font-weight:800;">Community Reviews<?php if ($review_count > 0): ?><span class="t-s" style="font-size:14px;font-weight:400;">(<?= $review_count ?>)</span><?php endif; ?></h2>
   </div>
 
   <?php if (!empty($reviews)): ?>
@@ -148,11 +157,8 @@ $avatar_colors = ['#6366f1', '#22d3ee', '#a855f7', '#ec4899', '#10b981', '#f59e0
           <label class="lbl">Rating</label>
           <div style="display:flex;flex-direction:row-reverse;gap:4px;justify-content:flex-end;">
             <?php for ($i = 5; $i >= 1; $i--): ?>
-            <input type="radio" name="rating" value="<?= $i ?>" id="sr<?= $i ?>" style="display:none;">
-            <label for="sr<?= $i ?>" data-val="<?= $i ?>" class="star-label" style="font-size:28px;cursor:pointer;color:rgba(255,255,255,0.1);transition:color .2s,transform .2s;user-select:none;"
-                   onmouseover="this.style.color='#fbbf24';this.style.transform='scale(1.1)'"
-                   onmouseout="var r=document.querySelector('input[name=rating]:checked');if(!r||parseInt(r.value)<parseInt(this.dataset.val))this.style.color='rgba(255,255,255,0.1)';this.style.transform=''"
-                   onclick="document.querySelectorAll('.star-label').forEach(function(l){l.style.color=parseInt(l.dataset.val)<=<?= $i ?>?'#fbbf24':'rgba(255,255,255,0.1)'})">&#9733;</label>
+            <input type="radio" name="rating" value="<?= $i ?>" id="sr<?= $i ?>" class="star-input">
+            <label for="sr<?= $i ?>" data-val="<?= $i ?>" class="star-label">&#9733;</label>
             <?php endfor; ?>
           </div>
         </div>
@@ -196,13 +202,21 @@ $avatar_colors = ['#6366f1', '#22d3ee', '#a855f7', '#ec4899', '#10b981', '#f59e0
 <script>
 (function() {
   var labels = document.querySelectorAll('.star-label');
+  function paint(val) {
+    labels.forEach(function(l) {
+      l.classList.toggle('on', parseInt(l.dataset.val) <= val);
+    });
+  }
   document.querySelectorAll('input[name="rating"]').forEach(function(radio) {
     radio.addEventListener('change', function() {
-      var val = parseInt(this.value);
-      labels.forEach(function(l) {
-        l.style.color = parseInt(l.dataset.val) <= val ? '#fbbf24' : 'rgba(255,255,255,0.1)';
-        l.style.transform = '';
-      });
+      paint(parseInt(this.value));
+    });
+  });
+  labels.forEach(function(l) {
+    l.addEventListener('mouseenter', function() { paint(parseInt(l.dataset.val)); });
+    l.addEventListener('mouseleave', function() {
+      var r = document.querySelector('input[name="rating"]:checked');
+      paint(r ? parseInt(r.value) : 0);
     });
   });
 })();

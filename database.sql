@@ -20,7 +20,7 @@ CREATE TABLE `users` (
 
 -- Password: Admin@1234 (bcrypt hash)
 INSERT IGNORE INTO `users` VALUES
-(1, 'PortalAdmin', 'admin@silveroakuni.ac.in', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', NOW());
+(1, 'PortalAdmin', 'admin@silveroakuni.ac.in', '$2y$10$Ns9Zx30OSI8tOwU5sNqi0uX8vjkDS2XYEI3/Z4DwoiY7K89N4FMLq', 'admin', NOW());
 
 CREATE TABLE `categories` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,

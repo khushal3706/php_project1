@@ -1,46 +1,93 @@
-# 🌌 AI Tool Recommendation Portal
+# AI Tool Recommendation Portal
 
-**A Dynamic Matching Engine for AI Utilities**
-
-This repository contains the source code for the Innovative PHP Group Assignment developed for the Bachelor of Computer Application program at Silver Oak University. 
-
-The application is a centralized, intelligent platform designed to combat digital "tool fatigue." It allows students, developers, and creators to discover, filter, and review artificial intelligence tools based on specific project requirements, budgets, and domains.
+A clean, modern PHP + MySQL web app to discover, compare, filter, and review AI tools. Rebuilt with a **white, clean UI** accented with **dark green**, and all bugs from the original repository fixed.
 
 ---
 
-## 🎨 UI/UX & Spatial Architecture
+## What was fixed / rebuilt
 
-The frontend is built with a custom **Dark Spatial UI** design system, pushing beyond standard Bootstrap layouts to deliver a premium, next-generation user experience:
-* **Glassmorphism & Depth:** Heavy utilization of CSS backdrop-filters, custom lighting overlays, and dynamic drop shadows to create a floating, refractive window effect.
-* **Antigravity Motion:** Custom CSS keyframe animations provide a smooth, zero-gravity floating state to core UI components.
-* **3D Integration Ready:** The visual architecture utilizes advanced masking and compositing layers, specifically structured to integrate seamlessly with sequenced 3D background animations and renders crafted in software like Blender.
-
----
-
-## ⚙️ Core Technical Features
-
-* **Intelligent Recommendation Engine:** Multi-parameter filtering (Pricing, Category, Use-Case) powered by a relational MySQL backend.
-* **Secure Multi-Tier Architecture:** Robust session management, encrypted password hashing (`password_hash()`), and strict role-based access control (RBAC) separating Standard Users from Portal Administrators.
-* **Full CRUD Administration:** A protected backend dashboard allowing administrators to dynamically Create, Read, Update, and Delete tool repository entries.
-* **Interactive Community Feedback:** Integrated user rating and review systems tied to individual tool profiles.
+| Problem | Fix |
+| --- | --- |
+| All pages lived inside `api/` with Vercel-only routing | Pages moved to the project root; plain Apache/XAMPP/`php -S` friendly |
+| "Similar Tools" button did nothing (`recommend.php` ignored GET) | `recommend.php` now accepts `?category_id=..&pricing=..` via GET |
+| Admin "Add Tool" crashed when no category selected (FK violation on `0`) | `category_id` saved as `NULL` instead of `0` |
+| Dark-space theme (`#0a0a0b`) | Full white / clean theme with dark-green accents (`assets/styles.css`) |
+| Pages depended on the deprecated Tailwind CDN | Replaced with self-contained custom CSS — works fully offline |
+| Star-rating picker & empty stars invisible on white | Recolored for the light theme |
+| Seeded admin password hash was for `password`, not documented `Admin@1234` | Hash regenerated for `Admin@1234` |
+| Deleting a review left the tool rating stale | Tool rating is recomputed (falls back to default 4.5) |
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
-* **Frontend:** HTML5, CSS3, Bootstrap 5, JavaScript (AJAX)
-* **Backend:** PHP 8.x
-* **Database:** MySQL
-* **Version Control:** Git & GitHub
+- **Frontend:** HTML5, CSS3, vanilla JavaScript (no framework/CDN dependency)
+- **Backend:** PHP 8.x
+- **Database:** MySQL / MariaDB
 
 ---
 
-## 🚀 Local Development Setup
+## Local Development Setup (XAMPP)
 
-To run this project locally, ensure you have a local server environment like XAMPP or WAMP installed.
-
-1. **Clone the repository:**
-   ```bash
-   cd C:\xampp\htdocs
-   git clone https://github.com/YourUsername/PHP_PROJECT.git
+1. **Copy the project** into your web root:
    ```
+   C:\xampp\htdocs\PHP_PROJECT
+   ```
+
+2. **Start XAMPP** → Apache and MySQL.
+
+3. **Create and seed the database** (phpMyAdmin → SQL tab, or CLI):
+   ```
+   mysql -u root < database.sql
+   ```
+   This creates the `ai_tool_portal` database with 8 categories, 22 AI tools, and the admin account.
+
+4. **Open the app:**
+   ```
+   http://localhost/PHP_PROJECT/
+   ```
+
+> Prefer the built-in server? Run `php -S localhost:8000 -t .` from this folder and open `http://localhost:8000/`.
+
+---
+
+## Database config
+
+`config.php` reads environment variables with sensible local defaults:
+
+| Variable | Default |
+| --- | --- |
+| `DB_HOST` | `localhost` |
+| `DB_USER` | `root` |
+| `DB_PASS` | *(empty)* |
+| `DB_NAME` | `ai_tool_portal` |
+
+---
+
+## Admin account
+
+| Field | Value |
+| --- | --- |
+| Email | `admin@silveroakuni.ac.in` |
+| Password | `Admin@1234` |
+
+Regular users can register their own accounts from the **Get Started** button.
+
+---
+
+## Pages
+
+- `index.php` — landing page with stats
+- `tools.php` — browse, search, and filter tools by category
+- `recommend.php` — 4-step wizard that matches tools to your needs
+- `tool_detail.php` — tool profile + community reviews
+- `login.php` / `register.php` — authentication
+- `profile.php` — your profile and reviews (delete reviews here)
+- `admin_dashboard.php` — admin-only CRUD for tools
+
+---
+
+## Notes
+
+- Database schema & seed data live in `database.sql`.
+- All user inputs are escaped; passwords hashed with `password_hash()`; admin routes protected by role checks.

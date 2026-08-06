@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     } elseif (!in_array($pricing, $allowed_pricing)) {
         $modal_error = 'Invalid pricing option.';
     } else {
+        $category_id = $category_id > 0 ? $category_id : null;
         $stmt = $conn->prepare(
             "INSERT INTO ai_tools (tool_name, description, url, category_id, pricing, added_by)
              VALUES (?, ?, ?, ?, ?, ?)"
@@ -68,7 +69,7 @@ $stat_avg   = $conn->query("SELECT ROUND(AVG(rating),1) AS a FROM ai_tools")->fe
 <style>
 .modal-overlay {
   position:fixed;inset:0;
-  background:rgba(0,0,0,.6);
+  background:rgba(18,27,20,.55);
   z-index:100;
   display:flex;
   align-items:center;
@@ -91,11 +92,10 @@ $stat_avg   = $conn->query("SELECT ROUND(AVG(rating),1) AS a FROM ai_tools")->fe
 .modal-overlay.open .c {
   transform:scale(1);
 }
-.tbl {width:100%;border-collapse:separate;border-spacing:0;text-align:left}
-.tbl thead th {padding:12px 16px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);white-space:nowrap}
-.tbl tbody tr {transition:background .15s}
-.tbl tbody tr:hover {background:rgba(255,255,255,.03)}
-.tbl tbody td {padding:14px 16px;font-size:14px;border-bottom:1px solid var(--border);vertical-align:middle}
+.stat-num{font-size:32px;font-weight:900;color:var(--accent);line-height:1.2}
+.stat-lbl2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-top:4px;color:var(--muted)}
+.table-card{overflow:hidden;padding:0}
+.table-head{display:flex;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px}
 </style>
 
 <main class="w" style="padding-top:32px;padding-bottom:64px;">
@@ -117,27 +117,27 @@ $stat_avg   = $conn->query("SELECT ROUND(AVG(rating),1) AS a FROM ai_tools")->fe
 
   <div class="g gc4 g4" style="margin-bottom:32px;">
     <div class="c-sm sf s1" style="text-align:center;">
-      <div style="font-size:32px;font-weight:900;color:var(--accent);line-height:1.2;"><?= $stat_tools ?></div>
-      <div class="t-m" style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-top:4px;">Total Tools</div>
+      <div class="stat-num"><?= $stat_tools ?></div>
+      <div class="stat-lbl2">Total Tools</div>
     </div>
     <div class="c-sm sf s2" style="text-align:center;">
-      <div style="font-size:32px;font-weight:900;color:var(--accent);line-height:1.2;"><?= $stat_users ?></div>
-      <div class="t-m" style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-top:4px;">Users</div>
+      <div class="stat-num"><?= $stat_users ?></div>
+      <div class="stat-lbl2">Users</div>
     </div>
     <div class="c-sm sf s3" style="text-align:center;">
-      <div style="font-size:32px;font-weight:900;color:var(--accent);line-height:1.2;"><?= $stat_cats ?></div>
-      <div class="t-m" style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-top:4px;">Categories</div>
+      <div class="stat-num"><?= $stat_cats ?></div>
+      <div class="stat-lbl2">Categories</div>
     </div>
     <div class="c-sm sf s4" style="text-align:center;">
-      <div style="font-size:32px;font-weight:900;color:var(--accent);line-height:1.2;"><?= htmlspecialchars((string)$stat_avg) ?></div>
-      <div class="t-m" style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-top:4px;">Avg Rating</div>
+      <div class="stat-num"><?= htmlspecialchars((string)$stat_avg) ?></div>
+      <div class="stat-lbl2">Avg Rating</div>
     </div>
   </div>
 
-  <div class="c" style="overflow:hidden;padding:0;">
-    <div class="f g4" style="justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;">
+  <div class="c table-card">
+    <div class="table-head">
       <div style="font-weight:600;font-size:14px;">All Tools <span class="t-m" style="font-weight:400;">(<?= $stat_tools ?> entries)</span></div>
-      <input type="text" id="adminSearch" class="i i-sm" style="width:200px;" placeholder="Filter table..." oninput="filterTable(this.value)">
+      <input type="text" id="adminSearch" class="i i-sm" style="width:220px;" placeholder="Filter table..." oninput="filterTable(this.value)">
     </div>
     <div style="overflow-x:auto;">
       <table class="tbl" id="toolsTable">
@@ -165,7 +165,7 @@ $stat_avg   = $conn->query("SELECT ROUND(AVG(rating),1) AS a FROM ai_tools")->fe
             </td>
             <td><span class="tag tag-accent"><?= htmlspecialchars($tool['category_name'] ?? 'Uncategorised') ?></span></td>
             <td><span class="tag tag-gray"><?= htmlspecialchars($tool['pricing']) ?></span></td>
-            <td style="color:#fbbf24;font-weight:600;"><?= htmlspecialchars($tool['rating'] ?? '--') ?></td>
+            <td style="color:var(--star);font-weight:600;"><?= htmlspecialchars($tool['rating'] ?? '--') ?></td>
             <td class="t-m" style="font-size:13px;"><?= date('d M Y', strtotime($tool['created_at'])) ?></td>
             <td style="text-align:right;">
               <form method="POST" action="admin_dashboard.php" onsubmit="return confirm('Delete this tool?');" style="display:inline;">

@@ -18,10 +18,18 @@ $selectedCatId = 0;
 $selectedPricing = '';
 $useCaseInput = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['category_id'])) {
-  $selectedCatId   = (int)$_POST['category_id'];
-  $selectedPricing = $_POST['pricing'] ?? '';
-  $useCaseInput    = trim($_POST['use_case'] ?? '');
+$isSearch = ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['category_id']))
+         || ($_SERVER['REQUEST_METHOD'] === 'GET'  && !empty($_GET['category_id']));
+
+if ($isSearch) {
+  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $selectedCatId   = (int)$_POST['category_id'];
+    $selectedPricing = $_POST['pricing'] ?? '';
+    $useCaseInput    = trim($_POST['use_case'] ?? '');
+  } else {
+    $selectedCatId   = (int)$_GET['category_id'];
+    $selectedPricing = trim($_GET['pricing'] ?? '');
+  }
 
   $where  = [];
   $params = [];
@@ -59,206 +67,25 @@ include 'header.php';
 ?>
 
 <style>
-.sd {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--border);
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-.sd-a {
-  background: var(--accent);
-  width: 28px;
-  border-radius: 5px;
-}
-.sd-d {
-  background: var(--success);
-}
-.sc {
-  width: 32px;
-  height: 2px;
-  background: var(--border);
-  flex-shrink: 0;
-  transition: background 0.2s;
-}
-.sc-d {
-  background: var(--success);
-}
-.h {
-  display: none !important;
-}
-
-.oc {
-  display: block;
-  padding: 14px 20px;
-  border-radius: var(--radius-lg);
-  background: var(--card);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  color: var(--secondary);
-  font-weight: 500;
-  user-select: none;
-}
-.oc:hover {
-  border-color: var(--border-hover);
-  color: var(--text);
-}
-.oc.s {
-  border-color: var(--accent);
-  background: rgba(59,130,246,0.08);
-  color: var(--text);
-}
-.oc input {
-  display: none;
-}
-
-.qf {
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 0.78rem;
-  transition: color 0.15s;
-  user-select: none;
-  white-space: nowrap;
-}
-.qf:hover {
-  color: var(--text);
-}
-.qf:not(:last-child)::after {
-  content: '|';
-  color: var(--border);
-  margin: 0 12px;
-}
-
-.pc {
-  display: block;
-  padding: 24px;
-  border-radius: var(--radius-lg);
-  background: var(--card);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-align: center;
-}
-.pc:hover {
-  border-color: var(--border-hover);
-}
-.pc.s {
-  border-color: var(--accent);
-  background: rgba(59,130,246,0.08);
-}
-.pc input {
-  display: none;
-}
-.pc .pci {
-  width: 48px;
-  height: 48px;
-  margin: 0 auto 12px;
-  border-radius: var(--radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
-}
-.pc.s .pci {
-  background: rgba(59,130,246,0.12);
-  border-color: rgba(59,130,246,0.25);
-}
-.pc .pcn {
-  font-weight: 700;
-  color: var(--text);
-  font-size: 1.05rem;
-  margin-bottom: 6px;
-}
-.pc .pcd {
-  font-size: 0.8rem;
-  color: var(--secondary);
-  line-height: 1.4;
-}
-
-.rr {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 18px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-.rr .rl {
-  font-size: 0.82rem;
-  color: var(--secondary);
-}
-.rr .rv {
-  font-size: 0.9rem;
-  color: var(--text);
-  font-weight: 600;
-  text-align: right;
-  max-width: 60%;
-  word-break: break-word;
-}
-
-.mb {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-.mb-h {
-  background: rgba(22,163,74,0.1);
-  color: #86efac;
-  border: 1px solid rgba(22,163,74,0.2);
-}
-.mb-m {
-  background: rgba(217,119,6,0.1);
-  color: #fcd34d;
-  border: 1px solid rgba(217,119,6,0.2);
-}
-.mb-l {
-  background: rgba(220,38,38,0.1);
-  color: #fca5a5;
-  border: 1px solid rgba(220,38,38,0.2);
-}
-
-.mr {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 0.65rem;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
-  color: var(--secondary);
-  white-space: nowrap;
-}
-
-.rc {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  transition: border-color 0.15s;
-  display: flex;
-  flex-direction: column;
-}
-.rc:hover {
-  border-color: var(--border-hover);
-}
-
-.star-svg {
-  display: inline-block;
-  vertical-align: middle;
-}
+.text-center{text-align:center}
+.mb-12{margin-bottom:48px}
+.mb-3{margin-bottom:12px}
+.mb-1{margin-bottom:4px}
+.wizard-head{font-size:1.3rem;font-weight:800;color:var(--text);letter-spacing:-.01em}
+.wizard-sub{font-size:.82rem;color:var(--secondary);margin-top:2px}
+.panel-title{font-size:1.125rem;font-weight:700;color:var(--text)}
+.panel-sub{font-size:.82rem;color:var(--secondary);margin-top:2px}
+.result-title{font-size:1.25rem;font-weight:800;color:var(--text);letter-spacing:-.01em}
+.tool-name{font-size:1rem;font-weight:700;color:var(--text)}
+.tool-desc{font-size:.8rem;line-height:1.6;margin-bottom:12px;color:var(--secondary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rc-head-ic{width:36px;height:36px;border-radius:var(--radius);background:var(--accent-subtle);color:var(--accent);border:1px solid rgba(31,111,67,.22);flex-shrink:0;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center}
 </style>
 
 <main class="w" style="padding-top:88px;padding-bottom:60px;">
 
   <div class="text-center mb-12 sf s1">
-    <h1 class="text-3xl sm:text-4xl font-extrabold mb-3" style="color:var(--text);">Find Your Perfect AI Tool</h1>
-    <p class="t-s text-sm" style="max-width:560px;margin:0 auto;">
+    <h1 class="wizard-head mb-3">Find Your Perfect AI Tool</h1>
+    <p class="t-s" style="font-size:.875rem;max-width:560px;margin:0 auto;">
       Answer a few questions and we will match you with the best AI tools for your needs.
     </p>
   </div>
@@ -277,24 +104,24 @@ include 'header.php';
             <div class="sc" id="conn-3"></div>
             <div class="sd" id="dot-4"></div>
           </div>
-          <span class="t-m" style="font-size:0.78rem;font-weight:600;" id="stepLabel">Step 1 of 4</span>
+          <span class="t-m" style="font-size:.78rem;font-weight:600;" id="stepLabel">Step 1 of 4</span>
         </div>
 
         <div class="step-panel" id="panel-1">
           <div class="f g3" style="margin-bottom:24px;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
             </svg>
             <div>
-              <h2 class="text-lg font-bold" style="color:var(--text);">What type of AI tool do you need?</h2>
-              <p class="t-s" style="font-size:0.82rem;margin-top:2px;">Choose the category that best matches your project</p>
+              <h2 class="panel-title">What type of AI tool do you need?</h2>
+              <p class="panel-sub">Choose the category that best matches your project</p>
             </div>
           </div>
           <div class="g gc2 g2" id="categoryGrid">
             <?php while ($cat = $categories->fetch_assoc()): ?>
-            <label class="oc<?= ($_POST['category_id'] ?? '') == $cat['id'] ? ' s' : '' ?>" data-value="<?= $cat['id'] ?>">
+            <label class="oc<?= $selectedCatId == $cat['id'] ? ' s' : '' ?>" data-value="<?= $cat['id'] ?>">
               <input type="radio" name="category_id" value="<?= $cat['id'] ?>"
-                <?= ($_POST['category_id'] ?? '') == $cat['id'] ? 'checked' : '' ?>>
+                <?= $selectedCatId == $cat['id'] ? 'checked' : '' ?>>
               <?= htmlspecialchars($cat['category_name']) ?>
             </label>
             <?php endwhile; ?>
@@ -303,13 +130,13 @@ include 'header.php';
 
         <div class="step-panel h" id="panel-2">
           <div class="f g3" style="margin-bottom:24px;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
             </svg>
             <div>
-              <h2 class="text-lg font-bold" style="color:var(--text);">Describe your use case</h2>
-              <p class="t-s" style="font-size:0.82rem;margin-top:2px;">Tell us more about what you are building or working on</p>
+              <h2 class="panel-title">Describe your use case</h2>
+              <p class="panel-sub">Tell us more about what you are building or working on</p>
             </div>
           </div>
           <textarea name="use_case" id="useCaseInput" rows="4" class="i"
@@ -323,13 +150,13 @@ include 'header.php';
 
         <div class="step-panel h" id="panel-3">
           <div class="f g3" style="margin-bottom:24px;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
               <line x1="12" y1="1" x2="12" y2="23"/>
               <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
             </svg>
             <div>
-              <h2 class="text-lg font-bold" style="color:var(--text);">What is your budget?</h2>
-              <p class="t-s" style="font-size:0.82rem;margin-top:2px;">Select your preferred pricing model</p>
+              <h2 class="panel-title">What is your budget?</h2>
+              <p class="panel-sub">Select your preferred pricing model</p>
             </div>
           </div>
           <div class="g gc3 g3" id="pricingGrid">
@@ -360,12 +187,12 @@ include 'header.php';
 
         <div class="step-panel h" id="panel-4">
           <div class="f g3" style="margin-bottom:24px;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
             <div>
-              <h2 class="text-lg font-bold" style="color:var(--text);">Review your selections</h2>
-              <p class="t-s" style="font-size:0.82rem;margin-top:2px;">Check your answers before we find the best tools</p>
+              <h2 class="panel-title">Review your selections</h2>
+              <p class="panel-sub">Check your answers before we find the best tools</p>
             </div>
           </div>
           <div class="f" style="flex-direction:column;gap:8px;" id="reviewSummary">
@@ -394,15 +221,15 @@ include 'header.php';
       </div>
     </form>
 
-    <?php if ($_SERVER['REQUEST_METHOD'] === 'POST'): ?>
+    <?php if ($isSearch): ?>
     <div style="margin-top:56px;" id="resultsSection">
       <div class="f g3" style="margin-bottom:24px;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
         <div>
-          <h2 class="text-xl font-bold" style="color:var(--text);">Recommendations</h2>
-          <p class="t-s" style="font-size:0.82rem;margin-top:2px;">
+          <h2 class="result-title">Recommendations</h2>
+          <p class="t-s" style="font-size:.82rem;margin-top:2px;">
             <?php if ($hasResults): ?>
             <?= $results->num_rows ?> tool<?= $results->num_rows > 1 ? 's' : '' ?> matched your criteria
             <?php else: ?>
@@ -446,11 +273,9 @@ include 'header.php';
         <div class="rc">
           <div class="f" style="justify-content:space-between;margin-bottom:12px;">
             <div class="f g3">
-              <div class="f" style="width:36px;height:36px;border-radius:var(--radius);background:rgba(59,130,246,0.1);color:var(--accent);border:1px solid rgba(59,130,246,0.2);flex-shrink:0;font-weight:700;font-size:0.8rem;justify-content:center;">
-                <?= strtoupper(substr($tool['tool_name'], 0, 2)) ?>
-              </div>
+              <div class="rc-head-ic"><?= strtoupper(substr($tool['tool_name'], 0, 2)) ?></div>
               <div>
-                <h3 class="text-base font-bold" style="color:var(--text);"><?= htmlspecialchars($tool['tool_name']) ?></h3>
+                <h3 class="tool-name"><?= htmlspecialchars($tool['tool_name']) ?></h3>
                 <div class="f g2" style="margin-top:4px;">
                   <span class="tag tag-accent"><?= htmlspecialchars($tool['category_name'] ?? 'General') ?></span>
                   <span class="tag tag-gray"><?= htmlspecialchars($tool['pricing']) ?></span>
@@ -459,17 +284,15 @@ include 'header.php';
             </div>
             <span class="mb <?= $matchClass ?>" style="flex-shrink:0;"><?= $matchScore ?>%</span>
           </div>
-          <p class="t-s" style="font-size:0.8rem;line-height:1.6;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
-            <?= htmlspecialchars(mb_substr($tool['description'] ?? '', 0, 200)) ?>
-          </p>
+          <p class="tool-desc"><?= htmlspecialchars(mb_substr($tool['description'] ?? '', 0, 200)) ?></p>
           <div class="f" style="justify-content:space-between;align-items:center;padding-top:12px;margin-top:auto;border-top:1px solid var(--border);">
             <div class="f g2">
               <?php for ($i = 0; $i < 5; $i++): ?>
-              <svg class="star-svg" width="14" height="14" viewBox="0 0 24 24" fill="<?= $i < $fullStars ? '#fbbf24' : 'none' ?>" stroke="<?= $i < $fullStars ? '#fbbf24' : 'var(--border)' ?>" stroke-width="1.5">
+              <svg class="star-svg" width="14" height="14" viewBox="0 0 24 24" fill="<?= $i < $fullStars ? 'var(--star)' : 'none' ?>" stroke="<?= $i < $fullStars ? 'var(--star)' : 'var(--border)' ?>" stroke-width="1.5">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
               </svg>
               <?php endfor; ?>
-              <span class="t-m" style="font-size:0.7rem;"><?= number_format($rating, 1) ?></span>
+              <span class="t-m" style="font-size:.7rem;"><?= number_format($rating, 1) ?></span>
             </div>
             <a href="tool_detail.php?id=<?= $tool['id'] ?>" class="btn btn-secondary btn-sm">View Details</a>
           </div>
@@ -488,8 +311,8 @@ include 'header.php';
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 16px;display:block;">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
-        <h3 class="text-lg font-bold mb-1" style="color:var(--text);">No matching tools found</h3>
-        <p class="t-s" style="font-size:0.85rem;max-width:360px;margin:0 auto 20px;">
+        <h3 style="font-size:1.125rem;font-weight:800;color:var(--text);margin-bottom:4px;">No matching tools found</h3>
+        <p class="t-s" style="font-size:.85rem;max-width:360px;margin:0 auto 20px;">
           Try broadening your search or adjusting your preferences to discover more AI tools.
         </p>
         <a href="tools.php" class="btn btn-primary">Browse All Tools</a>

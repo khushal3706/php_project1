@@ -42,19 +42,29 @@ $categories = $conn->query("SELECT * FROM categories ORDER BY category_name");
 include 'header.php';
 ?>
 
-<main class="w" style="padding-top:40px;padding-bottom:80px;">
+<style>
+.tool-card{display:flex;flex-direction:column}
+.tool-title{font-weight:700;font-size:1rem;margin-bottom:4px;color:var(--text)}
+.tool-desc{font-size:14px;flex:1;margin-bottom:12px;color:var(--secondary)}
+.cat-avatar{color:#fff;font-weight:700}
+.search-wrap{display:flex;gap:8px;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:8px 14px;flex:1;max-width:380px;align-items:center}
+.search-wrap .i{border:none;padding:0;box-shadow:none}
+.search-wrap .i:focus{box-shadow:none}
+</style>
+
+<main class="w" style="padding-top:44px;padding-bottom:80px;">
 
   <div class="sf s1">
-    <h1 style="font-size:1.5rem;font-weight:700;">Explore AI Tools</h1>
+    <h1 style="font-size:1.5rem;font-weight:800;">Explore AI Tools</h1>
     <p class="t-s" style="font-size:0.875rem;margin-top:4px;">Browse our curated collection of AI tools</p>
   </div>
 
   <form method="GET" action="tools.php" class="f g2 sf s2" style="margin-top:24px;">
-    <div class="f g2" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:8px 14px;flex:1;max-width:380px;">
+    <div class="search-wrap">
       <svg width="16" height="16" fill="none" stroke="var(--muted)" viewBox="0 0 24 24" style="flex-shrink:0;">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
       </svg>
-      <input type="text" name="q" placeholder="Search tools..." value="<?= htmlspecialchars($search_q) ?>" class="i-sm" style="border:none;padding:0;">
+      <input type="text" name="q" placeholder="Search tools..." value="<?= htmlspecialchars($search_q) ?>" class="i i-sm">
       <?php if ($search_cat !== ''): ?>
       <input type="hidden" name="cat" value="<?= htmlspecialchars($search_cat) ?>">
       <?php endif; ?>
@@ -94,24 +104,24 @@ include 'header.php';
         default    => 'tag-amber'
       };
       $cat_color = match ($cat_slug) {
-        'code'         => '#3b82f6',
-        'image'        => '#a855f7',
-        'data'         => '#eab308',
-        'writing'      => '#22c55e',
-        'audio'        => '#ef4444',
-        'agent'        => '#6366f1',
-        'productivity' => '#14b8a6',
-        'education'    => '#06b6d4',
-        default        => '#6366f1'
+        'code'         => '#1f6f43',
+        'image'        => '#7c5cd6',
+        'data'         => '#d97706',
+        'writing'      => '#15803d',
+        'audio'        => '#c2410c',
+        'agent'        => '#4f46e5',
+        'productivity' => '#0e7490',
+        'education'    => '#0369a1',
+        default        => '#1f6f43'
       };
     ?>
-    <div class="c-sm" style="display:flex;flex-direction:column;">
+    <div class="c-sm tool-card">
       <div class="f g3" style="margin-bottom:12px;">
-        <div class="avatar" style="background:<?= $cat_color ?>;"><?= $icon_text ?></div>
+        <div class="avatar cat-avatar" style="background:<?= $cat_color ?>;"><?= $icon_text ?></div>
         <span class="tag tag-gray"><?= $cat_name ?></span>
       </div>
-      <div style="font-weight:700;font-size:1rem;margin-bottom:4px;"><?= $tool_name ?></div>
-      <p class="t-s" style="font-size:14px;flex:1;margin-bottom:12px;"><?= $desc ?></p>
+      <div class="tool-title"><?= $tool_name ?></div>
+      <p class="t-s tool-desc"><?= $desc ?></p>
       <div class="f g3" style="margin-bottom:12px;">
         <span class="st"><?= $stars ?></span>
         <span class="tag <?= $pclass ?>"><?= $pricing ?></span>
@@ -123,7 +133,7 @@ include 'header.php';
 
   <?php else: ?>
   <div class="c sf s4" style="text-align:center;padding:48px 24px;margin-top:28px;">
-    <div style="width:48px;height:48px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+    <div style="width:48px;height:48px;border-radius:50%;background:var(--bg-soft);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
       <svg width="20" height="20" fill="none" stroke="var(--muted)" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
       </svg>

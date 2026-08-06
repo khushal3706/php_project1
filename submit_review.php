@@ -45,7 +45,7 @@ $stmt->bind_param('iiis', $_SESSION['user_id'], $tool_id, $rating, $review_text)
 $stmt->execute();
 $stmt->close();
 
-$stmt = $conn->prepare('UPDATE ai_tools SET rating = (SELECT ROUND(AVG(rating), 1) FROM reviews WHERE tool_id = ?) WHERE id = ?');
+$stmt = $conn->prepare('UPDATE ai_tools SET rating = IFNULL((SELECT ROUND(AVG(rating), 1) FROM reviews WHERE tool_id = ?), 4.5) WHERE id = ?');
 $stmt->bind_param('ii', $tool_id, $tool_id);
 $stmt->execute();
 $stmt->close();

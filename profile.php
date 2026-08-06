@@ -10,10 +10,26 @@ $user_id = (int) $_SESSION['user_id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_review'])) {
     $review_id = (int) $_POST['delete_review'];
-    $stmt = $conn->prepare('DELETE FROM reviews WHERE id = ? AND user_id = ?');
+    $stmt = $conn->prepare('SELECT tool_id FROM reviews WHERE id = ? AND user_id = ?');
     $stmt->bind_param('ii', $review_id, $user_id);
     $stmt->execute();
+    $del_row = $stmt->get_result()->fetch_assoc();
     $stmt->close();
+
+    if ($del_row) {
+        $stmt = $conn->prepare('DELETE FROM reviews WHERE id = ? AND user_id = ?');
+        $stmt->bind_param('ii', $review_id, $user_id);
+        $stmt->execute();
+        $stmt->close();
+
+        $tool_id = (int) $del_row['tool_id'];
+        $stmt = $conn->prepare(
+            'UPDATE ai_tools SET rating = IFNULL((SELECT ROUND(AVG(rating),1) FROM reviews WHERE tool_id = ?), 4.5) WHERE id = ?'
+        );
+        $stmt->bind_param('ii', $tool_id, $tool_id);
+        $stmt->execute();
+        $stmt->close();
+    }
     header('Location: profile.php');
     exit;
 }

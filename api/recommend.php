@@ -272,8 +272,13 @@ include 'header.php';
         ?>
         <div class="rc">
           <div class="f" style="justify-content:space-between;margin-bottom:12px;">
-            <div class="f g3">
-              <div class="rc-head-ic"><?= strtoupper(substr($tool['tool_name'], 0, 2)) ?></div>
+            <div class="f g3" style="align-items:center;">
+              <div class="tool-icon-avatar" style="width:38px;height:38px;padding:4px;border-radius:10px;">
+                <?php $r_icon = get_tool_icon_url($tool); if (!empty($r_icon)): ?>
+                <img src="<?= htmlspecialchars($r_icon) ?>" alt="<?= htmlspecialchars($tool['tool_name']) ?>" class="tool-icon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                <?php endif; ?>
+                <div class="rc-head-ic" style="width:100%;height:100%;border-radius:6px;<?= !empty($r_icon) ? 'display:none;' : '' ?>"><?= strtoupper(substr($tool['tool_name'], 0, 2)) ?></div>
+              </div>
               <div>
                 <h3 class="tool-name"><?= htmlspecialchars($tool['tool_name']) ?></h3>
                 <div class="f g2" style="margin-top:4px;">

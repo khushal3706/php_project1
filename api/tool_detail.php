@@ -57,6 +57,7 @@ function abbr($name) {
 }
 
 $avatar_colors = ['#1f6f43', '#7c5cd6', '#0e7490', '#15803d', '#4f46e5', '#b45309', '#c2410c', '#0369a1'];
+$tool_icon = $tool ? get_tool_icon_url($tool) : '';
 ?>
 <?php include 'header.php'; ?>
 
@@ -80,7 +81,12 @@ $avatar_colors = ['#1f6f43', '#7c5cd6', '#0e7490', '#15803d', '#4f46e5', '#b4530
   <div class="c sf s1">
     <div class="f g4" style="align-items:flex-start;">
       <div style="text-align:center;">
-        <div class="avatar avatar-lg" style="background:<?= $avatar_colors[$tool_id % count($avatar_colors)] ?>;margin-bottom:8px;"><?= htmlspecialchars(abbr($tool['tool_name'])) ?></div>
+        <div class="tool-icon-avatar avatar-lg" style="margin:0 auto 8px;background:#fff;box-shadow:0 4px 14px rgba(24,33,27,.07);border:1px solid var(--border);">
+          <?php if (!empty($tool_icon)): ?>
+          <img src="<?= htmlspecialchars($tool_icon) ?>" alt="<?= htmlspecialchars($tool['tool_name']) ?>" class="tool-icon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <?php endif; ?>
+          <div class="avatar avatar-lg" style="background:<?= $avatar_colors[$tool_id % count($avatar_colors)] ?>;width:100%;height:100%;border-radius:12px;<?= !empty($tool_icon) ? 'display:none;' : '' ?>"><?= htmlspecialchars(abbr($tool['tool_name'])) ?></div>
+        </div>
         <span class="tag tag-accent"><?= htmlspecialchars($tool['category_name'] ?? 'General') ?></span>
       </div>
       <div style="flex:1;min-width:0;">

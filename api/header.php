@@ -50,7 +50,14 @@ $ia = ($_SESSION['role'] ?? '') === 'admin';
       </a>
       <div class="f g2" style="display:none;" id="deskNav">
         <a href="index.php" class="nav-lk">Home</a>
-        <a href="tools.php" class="nav-lk">Tools</a>
+        <a href="tools.php" class="nav-lk" style="display:inline-flex;align-items:center;gap:6px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a4 4 0 0 1 4 4c0 .73-.2 1.41-.54 2H18a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-2.54c.34.59.54 1.27.54 2a4 4 0 1 1-8 0c0-.73.2-1.41.54-2H6a3 3 0 0 1-3-3v-2a3 3 0 0 1 3-3h2.54A3.98 3.98 0 0 1 8 6a4 4 0 0 1 4-4z"/>
+            <circle cx="9" cy="13" r="1" fill="currentColor"/>
+            <circle cx="15" cy="13" r="1" fill="currentColor"/>
+          </svg>
+          Tools
+        </a>
         <a href="recommend.php" class="nav-lk">Recommend</a>
 <?php if ($li): ?>
         <a href="profile.php" class="nav-lk">Profile</a>
@@ -73,7 +80,14 @@ $ia = ($_SESSION['role'] ?? '') === 'admin';
     <div id="mbMenu" style="display:none;padding-bottom:12px;border-top:1px solid var(--border);">
       <div class="f" style="flex-direction:column;gap:2px;padding-top:8px;">
         <a href="index.php" class="nav-lk">Home</a>
-        <a href="tools.php" class="nav-lk">Tools</a>
+        <a href="tools.php" class="nav-lk" style="display:inline-flex;align-items:center;gap:6px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a4 4 0 0 1 4 4c0 .73-.2 1.41-.54 2H18a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-2.54c.34.59.54 1.27.54 2a4 4 0 1 1-8 0c0-.73.2-1.41.54-2H6a3 3 0 0 1-3-3v-2a3 3 0 0 1 3-3h2.54A3.98 3.98 0 0 1 8 6a4 4 0 0 1 4-4z"/>
+            <circle cx="9" cy="13" r="1" fill="currentColor"/>
+            <circle cx="15" cy="13" r="1" fill="currentColor"/>
+          </svg>
+          Tools
+        </a>
         <a href="recommend.php" class="nav-lk">Recommend</a>
 <?php if ($li): ?>
         <a href="profile.php" class="nav-lk">Profile</a>

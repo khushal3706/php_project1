@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $tool_name   = trim($_POST['tool_name']   ?? '');
     $description = trim($_POST['description'] ?? '');
     $url         = trim($_POST['url']         ?? '');
+    $icon_url    = trim($_POST['icon_url']    ?? '');
     $category_id = (int)($_POST['category_id'] ?? 0);
     $pricing     = $_POST['pricing'] ?? 'Freemium';
     $rating      = isset($_POST['rating']) && is_numeric($_POST['rating']) ? (float)$_POST['rating'] : 4.5;
@@ -27,10 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $rating = min(5.0, max(1.0, round($rating, 1)));
         $category_id = $category_id > 0 ? $category_id : null;
         $stmt = $conn->prepare(
-            "INSERT INTO ai_tools (tool_name, description, url, category_id, pricing, rating, added_by)
-             VALUES (?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO ai_tools (tool_name, description, url, icon_url, category_id, pricing, rating, added_by)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
-        $stmt->bind_param('sssisdi', $tool_name, $description, $url, $category_id, $pricing, $rating, $added_by);
+        $stmt->bind_param('ssssisdi', $tool_name, $description, $url, $icon_url, $category_id, $pricing, $rating, $added_by);
         if ($stmt->execute()) {
             $modal_success = "Tool \"" . htmlspecialchars($tool_name) . "\" added successfully!";
         } else {
@@ -45,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $tool_name   = trim($_POST['tool_name']   ?? '');
     $description = trim($_POST['description'] ?? '');
     $url         = trim($_POST['url']         ?? '');
+    $icon_url    = trim($_POST['icon_url']    ?? '');
     $category_id = (int)($_POST['category_id'] ?? 0);
     $pricing     = $_POST['pricing'] ?? 'Freemium';
     $rating      = isset($_POST['rating']) && is_numeric($_POST['rating']) ? (float)$_POST['rating'] : 4.5;
@@ -61,10 +63,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $category_id = $category_id > 0 ? $category_id : null;
         $stmt = $conn->prepare(
             "UPDATE ai_tools 
-             SET tool_name = ?, description = ?, url = ?, category_id = ?, pricing = ?, rating = ?
+             SET tool_name = ?, description = ?, url = ?, icon_url = ?, category_id = ?, pricing = ?, rating = ?
              WHERE id = ?"
         );
-        $stmt->bind_param('sssisdi', $tool_name, $description, $url, $category_id, $pricing, $rating, $tool_id);
+        $stmt->bind_param('ssssisdi', $tool_name, $description, $url, $icon_url, $category_id, $pricing, $rating, $tool_id);
         if ($stmt->execute()) {
             $modal_success = "Tool \"" . htmlspecialchars($tool_name) . "\" updated successfully!";
         } else {
@@ -204,10 +206,19 @@ $stat_avg   = $conn->query("SELECT ROUND(AVG(rating),1) AS a FROM ai_tools")->fe
           <tr class="tool-row" data-name="<?= strtolower(htmlspecialchars($tool['tool_name'])) ?>">
             <td class="t-m" style="font-size:13px;font-family:monospace;">#<?= $tool['id'] ?></td>
             <td>
-              <div style="font-weight:600;"><?= htmlspecialchars($tool['tool_name']) ?></div>
-              <?php if (!empty($tool['url'])): ?>
-              <a href="<?= htmlspecialchars($tool['url']) ?>" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);"><?= htmlspecialchars(parse_url($tool['url'], PHP_URL_HOST) ?? $tool['url']) ?></a>
-              <?php endif; ?>
+              <div class="f g2" style="align-items:center;">
+                <div class="tool-icon-avatar" style="width:32px;height:32px;padding:3px;border-radius:8px;">
+                  <?php $t_icon = get_tool_icon_url($tool); if (!empty($t_icon)): ?>
+                  <img src="<?= htmlspecialchars($t_icon) ?>" alt="" class="tool-icon-img" onerror="this.style.display='none';">
+                  <?php endif; ?>
+                </div>
+                <div>
+                  <div style="font-weight:600;"><?= htmlspecialchars($tool['tool_name']) ?></div>
+                  <?php if (!empty($tool['url'])): ?>
+                  <a href="<?= htmlspecialchars($tool['url']) ?>" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);"><?= htmlspecialchars(parse_url($tool['url'], PHP_URL_HOST) ?? $tool['url']) ?></a>
+                  <?php endif; ?>
+                </div>
+              </div>
             </td>
             <td><span class="tag tag-accent"><?= htmlspecialchars($tool['category_name'] ?? 'Uncategorised') ?></span></td>
             <td><span class="tag tag-gray"><?= htmlspecialchars($tool['pricing']) ?></span></td>
@@ -218,6 +229,7 @@ $stat_avg   = $conn->query("SELECT ROUND(AVG(rating),1) AS a FROM ai_tools")->fe
                 'id' => (int)$tool['id'],
                 'tool_name' => $tool['tool_name'],
                 'url' => $tool['url'] ?? '',
+                'icon_url' => $tool['icon_url'] ?? '',
                 'category_id' => (int)($tool['category_id'] ?? 0),
                 'pricing' => $tool['pricing'],
                 'rating' => (float)($tool['rating'] ?? 4.5),
@@ -260,6 +272,11 @@ $stat_avg   = $conn->query("SELECT ROUND(AVG(rating),1) AS a FROM ai_tools")->fe
       <div style="margin-bottom:16px;">
         <label class="lbl">Website URL</label>
         <input type="url" name="url" class="i" placeholder="https://...">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label class="lbl">Icon URL / Path (optional)</label>
+        <input type="text" name="icon_url" class="i" placeholder="e.g. assets/icons/cursor.png or https://...">
+        <p class="t-m" style="font-size:11px;margin-top:4px;">Leave empty to auto-detect icon from website URL.</p>
       </div>
       <div class="f g4" style="margin-bottom:16px;">
         <div style="flex:1;">
@@ -318,6 +335,10 @@ $stat_avg   = $conn->query("SELECT ROUND(AVG(rating),1) AS a FROM ai_tools")->fe
         <label class="lbl">Website URL</label>
         <input type="url" name="url" id="edit_url" class="i" placeholder="https://...">
       </div>
+      <div style="margin-bottom:16px;">
+        <label class="lbl">Icon URL / Path (optional)</label>
+        <input type="text" name="icon_url" id="edit_icon_url" class="i" placeholder="e.g. assets/icons/cursor.png or https://...">
+      </div>
       <div class="f g4" style="margin-bottom:16px;">
         <div style="flex:1;">
           <label class="lbl">Category</label>
@@ -365,6 +386,7 @@ function openEditModal(tool) {
   document.getElementById('edit_tool_id').value = tool.id;
   document.getElementById('edit_tool_name').value = tool.tool_name || '';
   document.getElementById('edit_url').value = tool.url || '';
+  document.getElementById('edit_icon_url').value = tool.icon_url || '';
   document.getElementById('edit_category_id').value = tool.category_id || 0;
   document.getElementById('edit_pricing').value = tool.pricing || 'Freemium';
   document.getElementById('edit_rating').value = tool.rating !== undefined ? tool.rating : 4.5;

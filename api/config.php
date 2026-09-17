@@ -8,6 +8,7 @@ $port     = (int)(getenv('DB_PORT') ?: 3306);
 $db_user  = getenv('DB_USER') ?: 'root';
 $db_pass  = getenv('DB_PASS') ?: '';
 $database = getenv('DB_NAME') ?: 'ai_tool_portal';
+
 $use_ssl  = getenv('DB_SSL') === 'true' || str_contains($host, 'aivencloud.com') || str_contains($host, 'tidbcloud.com');
 
 mysqli_report(MYSQLI_REPORT_OFF);
@@ -77,3 +78,54 @@ try {
     <?php
     exit();
 }
+
+/**
+ * Resolves the icon image URL for an AI tool.
+ * Falls back to known local icon, then Google Favicon service, or empty string.
+ */
+function get_tool_icon_url($tool) {
+    if (!empty($tool['icon_url'])) {
+        return $tool['icon_url'];
+    }
+
+    $name_lower = strtolower($tool['tool_name'] ?? '');
+    $map = [
+        'cursor'         => 'assets/icons/cursor.png',
+        'gpt image'      => 'assets/icons/gpt-image.png',
+        'chatgpt'        => 'assets/icons/chatgpt.png',
+        'perplexity'     => 'assets/icons/perplexity.png',
+        'grammarly'      => 'assets/icons/grammarly.png',
+        'elevenlabs'     => 'assets/icons/elevenlabs.svg',
+        'runway'         => 'assets/icons/runway.png',
+        'canva'          => 'assets/icons/canva.png',
+        'claude'         => 'assets/icons/claude.png',
+        'gemini'         => 'assets/icons/gemini.png',
+        'copilot'        => 'assets/icons/copilot.png',
+        'midjourney'     => 'assets/icons/midjourney.png',
+        'bolt'           => 'assets/icons/bolt.png',
+        'zapier'         => 'assets/icons/zapier.png',
+        'replit'         => 'assets/icons/replit.png',
+        'gamma'          => 'assets/icons/gamma.png',
+        'otter'          => 'assets/icons/otter.png',
+        'motion'         => 'assets/icons/motion.png',
+        'khanmigo'       => 'assets/icons/khanmigo.png',
+        'quizlet'        => 'assets/icons/quizlet.png',
+        'duolingo'       => 'assets/icons/duolingo.png',
+        'notion'         => 'assets/icons/notion.png',
+    ];
+
+    foreach ($map as $key => $file) {
+        if (str_contains($name_lower, $key)) {
+            return $file;
+        }
+    }
+
+    if (!empty($tool['url'])) {
+        $host = parse_url($tool['url'], PHP_URL_HOST);
+        if ($host) {
+            return "https://www.google.com/s2/favicons?domain=" . urlencode($host) . "&sz=128";
+        }
+    }
+
+    return '';
+}

@@ -106,6 +106,12 @@ $avatar_colors = ['#1f6f43', '#7c5cd6', '#0e7490', '#15803d', '#4f46e5', '#b4530
           <?php if (!empty($tool['category_id'])): ?>
           <a href="recommend.php?category_id=<?= (int)$tool['category_id'] ?>" class="btn btn-secondary">Similar Tools</a>
           <?php endif; ?>
+          <?php if (!empty($_SESSION['user_id']) && ($_SESSION['role'] ?? '') === 'admin'): ?>
+          <a href="admin_dashboard.php?edit=<?= (int)$tool['id'] ?>" class="btn btn-secondary" style="border-color:var(--accent);color:var(--accent);">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right:4px;vertical-align:text-top;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Edit Tool
+          </a>
+          <?php endif; ?>
         </div>
       </div>
     </div>

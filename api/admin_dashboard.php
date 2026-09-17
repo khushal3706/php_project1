@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $url         = trim($_POST['url']         ?? '');
     $category_id = (int)($_POST['category_id'] ?? 0);
     $pricing     = $_POST['pricing'] ?? 'Freemium';
+    $rating      = isset($_POST['rating']) && is_numeric($_POST['rating']) ? (float)$_POST['rating'] : 4.5;
     $added_by    = $_SESSION['user_id'];
 
     $allowed_pricing = ['Free','Freemium','Paid'];
@@ -23,16 +24,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     } elseif (!in_array($pricing, $allowed_pricing)) {
         $modal_error = 'Invalid pricing option.';
     } else {
+        $rating = min(5.0, max(1.0, round($rating, 1)));
         $category_id = $category_id > 0 ? $category_id : null;
         $stmt = $conn->prepare(
-            "INSERT INTO ai_tools (tool_name, description, url, category_id, pricing, added_by)
-             VALUES (?, ?, ?, ?, ?, ?)"
+            "INSERT INTO ai_tools (tool_name, description, url, category_id, pricing, rating, added_by)
+             VALUES (?, ?, ?, ?, ?, ?, ?)"
         );
-        $stmt->bind_param('sssisi', $tool_name, $description, $url, $category_id, $pricing, $added_by);
+        $stmt->bind_param('sssisdi', $tool_name, $description, $url, $category_id, $pricing, $rating, $added_by);
         if ($stmt->execute()) {
             $modal_success = "Tool \"" . htmlspecialchars($tool_name) . "\" added successfully!";
         } else {
             $modal_error = 'Failed to add tool. Please try again.';
+        }
+        $stmt->close();
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_tool') {
+    $tool_id     = (int)($_POST['tool_id'] ?? 0);
+    $tool_name   = trim($_POST['tool_name']   ?? '');
+    $description = trim($_POST['description'] ?? '');
+    $url         = trim($_POST['url']         ?? '');
+    $category_id = (int)($_POST['category_id'] ?? 0);
+    $pricing     = $_POST['pricing'] ?? 'Freemium';
+    $rating      = isset($_POST['rating']) && is_numeric($_POST['rating']) ? (float)$_POST['rating'] : 4.5;
+
+    $allowed_pricing = ['Free','Freemium','Paid'];
+    if ($tool_id <= 0) {
+        $modal_error = 'Invalid tool ID for update.';
+    } elseif (empty($tool_name)) {
+        $modal_error = 'Tool name is required.';
+    } elseif (!in_array($pricing, $allowed_pricing)) {
+        $modal_error = 'Invalid pricing option.';
+    } else {
+        $rating = min(5.0, max(1.0, round($rating, 1)));
+        $category_id = $category_id > 0 ? $category_id : null;
+        $stmt = $conn->prepare(
+            "UPDATE ai_tools 
+             SET tool_name = ?, description = ?, url = ?, category_id = ?, pricing = ?, rating = ?
+             WHERE id = ?"
+        );
+        $stmt->bind_param('sssisdi', $tool_name, $description, $url, $category_id, $pricing, $rating, $tool_id);
+        if ($stmt->execute()) {
+            $modal_success = "Tool \"" . htmlspecialchars($tool_name) . "\" updated successfully!";
+        } else {
+            $modal_error = 'Failed to update tool. Please try again.';
         }
         $stmt->close();
     }
@@ -48,6 +84,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         header("Location: admin_dashboard.php?deleted=1");
         exit();
     }
+}
+
+$edit_id = (int)($_GET['edit'] ?? 0);
+$edit_tool_data = null;
+if ($edit_id > 0) {
+    $stmt = $conn->prepare("SELECT * FROM ai_tools WHERE id = ?");
+    $stmt->bind_param('i', $edit_id);
+    $stmt->execute();
+    $edit_tool_data = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
 }
 
 $tools_result = $conn->query(
@@ -149,7 +195,7 @@ $stat_avg   = $conn->query("SELECT ROUND(AVG(rating),1) AS a FROM ai_tools")->fe
             <th>Pricing</th>
             <th>Rating</th>
             <th>Added</th>
-            <th style="text-align:right;">Delete</th>
+            <th style="text-align:right;">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -167,8 +213,17 @@ $stat_avg   = $conn->query("SELECT ROUND(AVG(rating),1) AS a FROM ai_tools")->fe
             <td><span class="tag tag-gray"><?= htmlspecialchars($tool['pricing']) ?></span></td>
             <td style="color:var(--star);font-weight:600;"><?= htmlspecialchars($tool['rating'] ?? '--') ?></td>
             <td class="t-m" style="font-size:13px;"><?= date('d M Y', strtotime($tool['created_at'])) ?></td>
-            <td style="text-align:right;">
-              <form method="POST" action="admin_dashboard.php" onsubmit="return confirm('Delete this tool?');" style="display:inline;">
+            <td style="text-align:right;white-space:nowrap;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openEditModal(<?= htmlspecialchars(json_encode([
+                'id' => (int)$tool['id'],
+                'tool_name' => $tool['tool_name'],
+                'url' => $tool['url'] ?? '',
+                'category_id' => (int)($tool['category_id'] ?? 0),
+                'pricing' => $tool['pricing'],
+                'rating' => (float)($tool['rating'] ?? 4.5),
+                'description' => $tool['description'] ?? ''
+              ]), ENT_QUOTES, 'UTF-8') ?>)">Edit</button>
+              <form method="POST" action="admin_dashboard.php" onsubmit="return confirm('Delete this tool?');" style="display:inline;margin-left:4px;">
                 <input type="hidden" name="action" value="delete_tool">
                 <input type="hidden" name="tool_id" value="<?= $tool['id'] ?>">
                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -228,6 +283,10 @@ $stat_avg   = $conn->query("SELECT ROUND(AVG(rating),1) AS a FROM ai_tools")->fe
           </select>
         </div>
       </div>
+      <div style="margin-bottom:16px;">
+        <label class="lbl">Rating (1.0 - 5.0)</label>
+        <input type="number" name="rating" class="i" min="1.0" max="5.0" step="0.1" value="4.5">
+      </div>
       <div style="margin-bottom:20px;">
         <label class="lbl">Description</label>
         <textarea name="description" class="i" rows="3" placeholder="Brief description of the tool..."></textarea>
@@ -240,15 +299,103 @@ $stat_avg   = $conn->query("SELECT ROUND(AVG(rating),1) AS a FROM ai_tools")->fe
   </div>
 </div>
 
+<div class="modal-overlay" id="editToolModal">
+  <div class="c">
+    <div class="f g4" style="justify-content:space-between;margin-bottom:20px;">
+      <h2 style="font-size:18px;font-weight:700;">Edit AI Tool</h2>
+      <button onclick="closeEditModal()" style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted);background:transparent;border:none;cursor:pointer;font-size:20px;">&times;</button>
+    </div>
+
+    <form action="admin_dashboard.php" method="POST">
+      <input type="hidden" name="action" value="update_tool">
+      <input type="hidden" name="tool_id" id="edit_tool_id" value="">
+
+      <div style="margin-bottom:16px;">
+        <label class="lbl">Tool Name *</label>
+        <input type="text" name="tool_name" id="edit_tool_name" required class="i" placeholder="e.g. Cursor">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label class="lbl">Website URL</label>
+        <input type="url" name="url" id="edit_url" class="i" placeholder="https://...">
+      </div>
+      <div class="f g4" style="margin-bottom:16px;">
+        <div style="flex:1;">
+          <label class="lbl">Category</label>
+          <select name="category_id" id="edit_category_id" class="i">
+            <option value="0">Select</option>
+            <?php
+              $cats_result->data_seek(0);
+              while ($cat = $cats_result->fetch_assoc()):
+            ?>
+            <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['category_name']) ?></option>
+            <?php endwhile; ?>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label class="lbl">Pricing</label>
+          <select name="pricing" id="edit_pricing" class="i">
+            <option value="Free">Free</option>
+            <option value="Freemium">Freemium</option>
+            <option value="Paid">Paid</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label class="lbl">Rating (1.0 - 5.0)</label>
+        <input type="number" name="rating" id="edit_rating" class="i" min="1.0" max="5.0" step="0.1" placeholder="4.5">
+      </div>
+      <div style="margin-bottom:20px;">
+        <label class="lbl">Description</label>
+        <textarea name="description" id="edit_description" class="i" rows="3" placeholder="Brief description of the tool..."></textarea>
+      </div>
+      <div class="f g4">
+        <button type="button" onclick="closeEditModal()" class="btn btn-secondary" style="flex:1;">Cancel</button>
+        <button type="submit" class="btn btn-primary" style="flex:1;">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
 function openModal() { document.getElementById('addToolModal').classList.add('open'); }
 function closeModal() { document.getElementById('addToolModal').classList.remove('open'); }
 document.getElementById('addToolModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+
+function openEditModal(tool) {
+  document.getElementById('edit_tool_id').value = tool.id;
+  document.getElementById('edit_tool_name').value = tool.tool_name || '';
+  document.getElementById('edit_url').value = tool.url || '';
+  document.getElementById('edit_category_id').value = tool.category_id || 0;
+  document.getElementById('edit_pricing').value = tool.pricing || 'Freemium';
+  document.getElementById('edit_rating').value = tool.rating !== undefined ? tool.rating : 4.5;
+  document.getElementById('edit_description').value = tool.description || '';
+  document.getElementById('editToolModal').classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('editToolModal').classList.remove('open');
+}
+document.getElementById('editToolModal').addEventListener('click', function(e) { if (e.target === this) closeEditModal(); });
+
 function filterTable(q) {
   document.querySelectorAll('.tool-row').forEach(function(row) {
     row.style.display = row.dataset.name.includes(q.toLowerCase()) ? '' : 'none';
   });
 }
+
+<?php if ($edit_tool_data): ?>
+document.addEventListener('DOMContentLoaded', function() {
+  openEditModal(<?= json_encode([
+    'id' => (int)$edit_tool_data['id'],
+    'tool_name' => $edit_tool_data['tool_name'],
+    'url' => $edit_tool_data['url'] ?? '',
+    'category_id' => (int)($edit_tool_data['category_id'] ?? 0),
+    'pricing' => $edit_tool_data['pricing'],
+    'rating' => (float)($edit_tool_data['rating'] ?? 4.5),
+    'description' => $edit_tool_data['description'] ?? ''
+  ]) ?>);
+});
+<?php endif; ?>
 </script>
 
 <?php include 'footer.php'; ?>

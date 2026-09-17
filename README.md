@@ -68,8 +68,8 @@ A clean, modern PHP + MySQL web app to discover, compare, filter, and review AI 
 
 | Field | Value |
 | --- | --- |
-| Email | `admin@silveroakuni.ac.in` |
-| Password | `Admin@1234` |
+| Email | `admin@gmail.com` |
+| Password | `admin123` |
 
 Regular users can register their own accounts from the **Get Started** button.
 

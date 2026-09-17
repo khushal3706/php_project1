@@ -18,9 +18,9 @@ CREATE TABLE `users` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- Password: Admin@1234 (bcrypt hash)
+-- Password: admin123 (bcrypt hash)
 INSERT IGNORE INTO `users` VALUES
-(1, 'PortalAdmin', 'admin@silveroakuni.ac.in', '$2y$10$Ns9Zx30OSI8tOwU5sNqi0uX8vjkDS2XYEI3/Z4DwoiY7K89N4FMLq', 'admin', NOW());
+(1, 'PortalAdmin', 'admin@gmail.com', '$2y$10$DwaEwOoeHNwAF/6FwePCMOrfnqAqOeFbhTNk6t.qTaLBg9QCvrY/i', 'admin', NOW());
 
 CREATE TABLE `categories` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,

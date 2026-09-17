@@ -8,13 +8,21 @@ $port     = (int)(getenv('DB_PORT') ?: 3306);
 $db_user  = getenv('DB_USER') ?: 'root';
 $db_pass  = getenv('DB_PASS') ?: '';
 $database = getenv('DB_NAME') ?: 'ai_tool_portal';
+$use_ssl  = getenv('DB_SSL') === 'true' || str_contains($host, 'aivencloud.com') || str_contains($host, 'tidbcloud.com');
 
 mysqli_report(MYSQLI_REPORT_OFF);
 
 try {
-    $conn = @new mysqli($host, $db_user, $db_pass, $database, $port);
-    if ($conn->connect_error) {
-        throw new Exception($conn->connect_error);
+    $conn = mysqli_init();
+    if ($use_ssl) {
+        $conn->options(MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, false);
+        $connected = @$conn->real_connect($host, $db_user, $db_pass, $database, $port, null, MYSQLI_CLIENT_SSL);
+    } else {
+        $connected = @$conn->real_connect($host, $db_user, $db_pass, $database, $port);
+    }
+
+    if (!$connected || $conn->connect_error) {
+        throw new Exception($conn->connect_error ?: 'Connection failed');
     }
     $conn->set_charset('utf8mb4');
 } catch (Throwable $e) {

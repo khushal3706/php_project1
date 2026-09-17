@@ -11,3 +11,4 @@ agentic-awesome-skills/
 .env.local
 node_modules/
 vendor/
+.vercel
